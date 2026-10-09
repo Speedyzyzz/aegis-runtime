@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  aegis-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@aegis-postgres:5432/aegis
+      - SANDBOX_FS_ROOT=/data/sandbox
+    volumes:
+      - aegis-sandbox:/data/sandbox
+    depends_on:
+      - aegis-postgres
+
+  aegis-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - aegis-backend
+
+  aegis-postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=aegis
+    ports:
+      - "5433:5432"
+    volumes:
+      - aegis-pgdata:/var/lib/postgresql/data
+
+volumes:
+  aegis-sandbox:
+  aegis-pgdata:
